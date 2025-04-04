@@ -1,0 +1,2 @@
+export const GEMINI_FLASH_MODEL = 'GEMINI_FLASH_MODEL';
+export const GEMINI_PRO_EXP = 'GEMINI_PRO_EXP';

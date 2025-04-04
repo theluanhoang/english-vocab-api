@@ -1,0 +1,1 @@
+export * from 'src/shared/decorators/is-not-blank.decorator';
