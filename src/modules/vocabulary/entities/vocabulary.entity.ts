@@ -1,33 +1,30 @@
 import { CollectionVocabulary } from 'src/modules/collections/entities/collection-vocabulary.entity';
 import { CommonEntity } from 'src/shared/entities/common.entity';
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, OneToMany } from 'typeorm';
-// import { CollectionVocabulary } from './collection-vocabulary.entity';
-// import { Flashcard } from './flashcard.entity';
-// import { PracticeResult } from './practice-result.entity';
+import { Entity, Column, OneToMany } from 'typeorm';
 
 @Entity('vocabulary')
 export class Vocabulary extends CommonEntity {
-  @Column()
-  word: string;
+    @Column()
+    word: string;
 
-  @Column()
-  definition: string;
+    @Column({nullable: true})
+    meaning: string;
 
-  @Column()
-  pronunciation: string;
+    @Column()
+    definition: string;
 
-  @Column()
-  exampleSentence: string;
+    @Column()
+    pronunciation: string;
 
-  @Column()
-  partOfSpeech: string;
+    @Column()
+    exampleSentence: string;
 
-  @OneToMany(() => CollectionVocabulary, (collectionVocabulary) => collectionVocabulary.vocabulary)
-  collectionVocabularies: CollectionVocabulary[];
+    @Column()
+    partOfSpeech: string;
 
-//   @OneToMany(() => Flashcard, (flashcard) => flashcard.vocabulary)
-//   flashcards: Flashcard[];
+    @Column({ nullable: true })
+    audio: string;
 
-//   @OneToMany(() => PracticeResult, (practiceResult) => practiceResult.vocabulary)
-//   practiceResults: PracticeResult[];
+    @OneToMany(() => CollectionVocabulary, (collectionVocabulary) => collectionVocabulary.vocabulary)
+    collectionVocabularies: CollectionVocabulary[];
 }

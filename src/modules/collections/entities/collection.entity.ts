@@ -16,6 +16,9 @@ export class Collection extends CommonEntity {
   @Column({ type: 'enum', enum: ECollectionType})
   type: ECollectionType;
 
+  @Column({ nullable: false })
+  userId: string;
+
   @ManyToOne(() => User, (user) => user.collections)
   user: User;
 

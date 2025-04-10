@@ -1,4 +1,5 @@
 export enum ECollectionType {
     FORM = 'FORM',
-    SYNONYMS = 'SYNONYMS'
+    SYNONYMS = 'SYNONYMS',
+    MEANINGS = 'MEANINGS',
 }

@@ -8,6 +8,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { CollectionsModule } from './modules/collections/collections.module';
 import { GeminiModule } from './modules/gemini/gemini.module';
+import { TtsModule } from './modules/tts/tts.module';
 
 @Module({
   imports: [
@@ -34,7 +35,7 @@ import { GeminiModule } from './modules/gemini/gemini.module';
       }),
       inject: [ConfigService],
     }),
-    VocabularyModule, UsersModule, AuthModule, CollectionsModule, GeminiModule
+    VocabularyModule, UsersModule, AuthModule, CollectionsModule, GeminiModule, TtsModule
   ],
   controllers: [],
   providers: [ConfigService],
