@@ -3,13 +3,13 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/modules/users/entities/user.entity';
 import { CreateUserDTO } from '../users/dto/create-user.dto';
-import { LoginDTO } from './dto';
 import { UsersService } from '../users/users.service';
 import { EMessageError } from 'src/shared/common/error.message';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { getRefreshTokenKey } from 'src/utils';
 import { ConfigService } from '@nestjs/config';
+import { LoginDTO } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {

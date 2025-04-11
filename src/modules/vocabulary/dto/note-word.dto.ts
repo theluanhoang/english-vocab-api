@@ -10,8 +10,11 @@ export class NoteWordDTO {
     @IsNotBlank()
     @IsString()
     @Transform((params) => {
-        params.value = (params.value as string).toLowerCase();
-        return params.value;
+        const trimmedWord = (params.value as string).trim();
+        const res = trimmedWord.toLowerCase();
+        console.log("RES:::", res);
+        
+        return res;
     })
     word: string;
 }

@@ -73,6 +73,9 @@ export class CollectionsService {
 
     async getAllCollection(userId: string): Promise<Collection[]> {
         return this.collectionsRepository.find({
+            where: {
+                userId,
+            },
             relations: ['collectionVocabularies', 'collectionVocabularies.vocabulary', 'collectionVocabularies.collection']
         })
     }
