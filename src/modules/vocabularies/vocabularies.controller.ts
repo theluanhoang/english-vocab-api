@@ -1,5 +1,5 @@
 import { Controller, Post, Body, Request, UseGuards, Get, Param } from '@nestjs/common';
-import { VocabularyService } from './vocabulary.service';
+import { VocabularyService } from './vocabularies.service';
 import { NoteWordDTO } from './dto/note-word.dto';
 import { ApiBadRequestResponse, ApiBearerAuth, ApiOkResponse, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';

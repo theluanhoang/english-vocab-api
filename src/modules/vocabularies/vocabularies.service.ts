@@ -40,18 +40,20 @@ export class VocabularyService {
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-      const repository = queryRunner ? queryRunner.manager.getRepository(Vocabulary) : this.vocabularyRepository;
       const existingVocab = await this.getOne({
         where: { word: dto.word },
         relations: ['collectionVocabularies', 'collectionVocabularies.collection']
-      });
+      });      
   
       if (existingVocab) {        
-        const parentCollection = existingVocab.collectionVocabularies.filter((collectionVocabulary) => collectionVocabulary.collection.type === ECollectionType.FORM)[0];
+        const parentCollection = existingVocab.collectionVocabularies.find(
+          (cv) => cv.collection.type === ECollectionType.FORM,
+        );
+        
         if (parentCollection) {          
           const words = await this.collectionsService.getCollectionWords(parentCollection.collectionId);
           await queryRunner.commitTransaction();
-          return { collection: parentCollection.collection, words };
+          return { info: parentCollection.collection, words };
         }
       }
 
@@ -65,23 +67,11 @@ export class VocabularyService {
       });
 
       if (!currCollection) {
-        const newCollection = await this.collectionsService.create(userId, {
-          name: dto.word,
-          type: ECollectionType.FORM
-        }, queryRunner);
-
-        const variants = await this.getVariants(dto.word);
-
-        const savedVariants = await repository.save(variants.words);
-
-        await Promise.all(savedVariants.map(async (variant) => {
-          return this.collectionsService.linkWordToCollection(newCollection.id, variant.id, queryRunner);
-        }))
-        await queryRunner.commitTransaction();
+        const { collection, words } = await this.createNewFormCollection(dto, userId, queryRunner);
 
         return {
-          collection: newCollection,
-          words: savedVariants
+          collection,
+          words
         }
       }      
       const vocabs = await this.collectionsService.getCollectionWords(currCollection.id);
@@ -102,6 +92,22 @@ export class VocabularyService {
     } finally {
       await queryRunner.release();
     }
+  }
+
+  private async createNewFormCollection(dto: NoteWordDTO, userId: string, queryRunner: QueryRunner) {
+    const newCollection = await this.collectionsService.create(userId, {
+      name: dto.word,
+      type: ECollectionType.FORM
+    }, queryRunner);
+  
+    const variants = await this.getVariants(dto.word);
+    const savedVariants = await queryRunner.manager.getRepository(Vocabulary).save(variants.words);
+  
+    await Promise.all(savedVariants.map(variant =>
+      this.collectionsService.linkWordToCollection(newCollection.id, variant.id, queryRunner)
+    ));
+  
+    return { collection: newCollection, words: savedVariants };
   }
 
   async getOne(options: FindOneOptions<Vocabulary>): Promise<Vocabulary | null> {

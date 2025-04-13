@@ -4,9 +4,7 @@ import { FindOneOptions, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Collection } from './entities/collection.entity';
 import { UsersService } from '../users/users.service';
-import { VocabularyService } from '../vocabulary/vocabulary.service';
 import { EMessageError } from 'src/shared/common';
-import { User } from '../users/entities/user.entity';
 import { CreateCollectionDTO } from './dto/create-collection.dto';
 
 @Injectable()
@@ -65,19 +63,21 @@ export class CollectionsService {
         const collectionWords = await this.collectionsRepository.find({
             where: { id: collectionId },
             relations: ['collectionVocabularies', 'collectionVocabularies.vocabulary'],
-        });        
-        
+        });
+
         return this.transformData(collectionWords);
 
     }
 
     async getAllCollection(userId: string): Promise<Collection[]> {
-        return this.collectionsRepository.find({
+        const collections = await this.collectionsRepository.find({
             where: {
                 userId,
             },
             relations: ['collectionVocabularies', 'collectionVocabularies.vocabulary', 'collectionVocabularies.collection']
         })
+
+        return collections;
     }
 
     async getOne(options: FindOneOptions<Collection>): Promise<Collection | null> {
@@ -94,8 +94,8 @@ export class CollectionsService {
         return collection;
     }
 
-    private  transformData(input: Collection[]): OutputWord[] {
-        const transformedWords = input.flatMap(collection => 
+    private transformData(input: Collection[]): OutputWord[] {
+        const transformedWords = input.flatMap(collection =>
             collection.collectionVocabularies.map(cv => ({
                 audio: cv.vocabulary.audio,
                 definition: cv.vocabulary.definition,
@@ -106,11 +106,32 @@ export class CollectionsService {
                 word: cv.vocabulary.word,
                 id: cv.vocabulary.id,
                 createdAt: new Date(cv.vocabulary.createdAt).toISOString(),
-                updatedAt: new Date(cv.vocabulary.updatedAt).toISOString(), 
+                updatedAt: new Date(cv.vocabulary.updatedAt).toISOString(),
                 deletedAt: cv.vocabulary.deletedAt ? new Date(cv.vocabulary.deletedAt).toISOString() : null
-              }))
+            }))
         )
-        
+
         return transformedWords;
-      }
+    }
+
+    private transformAllCollections(input: Collection[]): any {
+        // const result = input.map(collection)
+        // return input.map(collection => ({
+        //     collection,
+        //     words: collection.collectionVocabularies.map(cv => ({
+        //         audio: cv.vocabulary.audio,
+        //         definition: cv.vocabulary.definition,
+        //         exampleSentence: cv.vocabulary.exampleSentence,
+        //         meaning: cv.vocabulary.meaning,
+        //         partOfSpeech: cv.vocabulary.partOfSpeech,
+        //         pronunciation: cv.vocabulary.pronunciation,
+        //         word: cv.vocabulary.word,
+        //         id: cv.vocabulary.id,
+        //         createdAt: new Date(cv.vocabulary.createdAt).toISOString(),
+        //         updatedAt: new Date(cv.vocabulary.updatedAt).toISOString(),
+        //         deletedAt: cv.vocabulary.deletedAt ? new Date(cv.vocabulary.deletedAt).toISOString() : null
+        //     }))
+        // }));
+    }
+
 }

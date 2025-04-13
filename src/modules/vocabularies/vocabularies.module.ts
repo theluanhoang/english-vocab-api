@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { VocabularyController } from './vocabulary.controller';
-import { VocabularyService } from './vocabulary.service';
+import { VocabularyController } from './vocabularies.controller';
+import { VocabularyService } from './vocabularies.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Vocabulary } from './entities/vocabulary.entity';
 import { GeminiModule } from '../gemini/gemini.module';

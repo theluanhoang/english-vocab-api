@@ -2,7 +2,7 @@ import { CollectionVocabulary } from 'src/modules/collections/entities/collectio
 import { CommonEntity } from 'src/shared/entities/common.entity';
 import { Entity, Column, OneToMany } from 'typeorm';
 
-@Entity('vocabulary')
+@Entity('vocabularies')
 export class Vocabulary extends CommonEntity {
     @Column()
     word: string;
@@ -16,10 +16,10 @@ export class Vocabulary extends CommonEntity {
     @Column()
     pronunciation: string;
 
-    @Column()
+    @Column({ name: 'example_sentence' })
     exampleSentence: string;
 
-    @Column()
+    @Column({ name: 'part_of_speech' })
     partOfSpeech: string;
 
     @Column({ nullable: true })

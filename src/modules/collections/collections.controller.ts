@@ -38,7 +38,7 @@ export class CollectionsController {
     })
     @ApiResponse({ status: 403, description: 'Forbidden.' })
     @Get()
-    async getAllCollection(@CurrentUser() currUser: User): Promise<any> {
+    async getAllCollection(@CurrentUser() currUser: User): Promise<Collection[]> {
         return this.collectionsService.getAllCollection(currUser.id);
     }
 }

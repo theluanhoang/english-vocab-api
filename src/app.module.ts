@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { VocabularyModule } from 'src/modules/vocabulary/vocabulary.module';
+import { VocabularyModule } from 'src/modules/vocabularies/vocabularies.module';
 import { UsersModule } from 'src/modules/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/modules/auth/auth.module';
