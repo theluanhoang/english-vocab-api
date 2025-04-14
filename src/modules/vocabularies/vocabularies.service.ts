@@ -67,10 +67,10 @@ export class VocabularyService {
       });
 
       if (!currCollection) {
-        const { collection, words } = await this.createNewFormCollection(dto, userId, queryRunner);
+        const { info, words } = await this.createNewFormCollection(dto, userId, queryRunner);
 
         return {
-          collection,
+          info,
           words
         }
       }      
@@ -79,7 +79,7 @@ export class VocabularyService {
       await queryRunner.commitTransaction();
 
       return {
-        collection: currCollection,
+        info: currCollection,
         words: vocabs
       }
     } catch (error) {
@@ -106,8 +106,10 @@ export class VocabularyService {
     await Promise.all(savedVariants.map(variant =>
       this.collectionsService.linkWordToCollection(newCollection.id, variant.id, queryRunner)
     ));
-  
-    return { collection: newCollection, words: savedVariants };
+
+    await queryRunner.commitTransaction();
+
+    return { info: newCollection, words: savedVariants };
   }
 
   async getOne(options: FindOneOptions<Vocabulary>): Promise<Vocabulary | null> {

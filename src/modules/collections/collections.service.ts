@@ -1,11 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CollectionVocabulary } from './entities/collection-vocabulary.entity';
-import { FindOneOptions, QueryRunner, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, FindOptionsWhere, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Collection } from './entities/collection.entity';
 import { UsersService } from '../users/users.service';
 import { EMessageError } from 'src/shared/common';
 import { CreateCollectionDTO } from './dto/create-collection.dto';
+import { GetCollectionDTO } from './dto';
+import { getLimitAndOffset } from 'src/shared/common/get-limit-offset';
 
 @Injectable()
 export class CollectionsService {
@@ -20,12 +22,6 @@ export class CollectionsService {
     async create(userId: string, createCollectionDTO: CreateCollectionDTO, queryRunner?: QueryRunner): Promise<Collection> {
         const { name, type } = createCollectionDTO;
         const repository = queryRunner ? queryRunner.manager.getRepository(Collection) : this.collectionsRepository;
-
-        const owner = await this.userService.getOneOrThrow({
-            where: {
-                id: userId
-            }
-        });
 
         return repository.save({
             name,
@@ -69,16 +65,34 @@ export class CollectionsService {
 
     }
 
-    async getAllCollection(userId: string): Promise<Collection[]> {
+    async getAllCollection(query: GetCollectionDTO, userId: string): Promise<Collection[]> {
+        const { limit, offset } = getLimitAndOffset({
+            limit: query?.limit,
+            offset: query?.offset,
+        });        
+    
+        const where: FindOptionsWhere<Collection> = {
+            userId,
+            ...(query.collectionId && { id: query.collectionId }),
+        };
+    
         const collections = await this.collectionsRepository.find({
-            where: {
-                userId,
+            where,
+            relations: [
+                'collectionVocabularies',
+                'collectionVocabularies.vocabulary',
+                'collectionVocabularies.collection'
+            ],
+            order: {
+                createdAt: 'DESC'
             },
-            relations: ['collectionVocabularies', 'collectionVocabularies.vocabulary', 'collectionVocabularies.collection']
-        })
-
+            take: limit,
+            skip: offset,
+        });
+    
         return collections;
     }
+    
 
     async getOne(options: FindOneOptions<Collection>): Promise<Collection | null> {
         return this.collectionsRepository.findOne(options);
