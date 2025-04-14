@@ -59,9 +59,6 @@ export class UsersService {
             }
 
             const isMatch = await bcrypt.compare(dto.password, user.password);
-            console.log("DTO password: ", dto.password);
-            console.log("USER:::", user.password);
-            
             
             if (!isMatch) {
                 throw new UnauthorizedException(EMessageError.INVALID_CREDENTIALS);

@@ -3,17 +3,17 @@ interface IGetLimitAndOffset {
     offset?: number;
 }
 
-export const getLimitAndOffset = (
-    { limit, offset }: IGetLimitAndOffset,
-    maxLimit = 10
-) => {
-    const parsedLimit = !isNaN(Number(limit)) ? Number(limit) : maxLimit;
-    const parsedOffset = !isNaN(Number(offset)) ? Number(offset) : 0;
+const MAX_LIMIT_RECORDS = 1000;
 
-    const _limit = Math.min(parsedLimit, maxLimit);
+export const getLimitAndOffset = ({
+    limit,
+    offset,
+}: IGetLimitAndOffset = {}) => {
+    const safeLimit = Number.isFinite(limit) ? Math.min(limit!, MAX_LIMIT_RECORDS) : MAX_LIMIT_RECORDS;
+    const safeOffset = Number.isFinite(offset) ? Math.max(offset!, 0) : 0;
 
     return {
-        limit: _limit,
-        offset: parsedOffset,
+        limit: safeLimit,
+        offset: safeOffset,
     };
 };

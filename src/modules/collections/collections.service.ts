@@ -69,7 +69,7 @@ export class CollectionsService {
         const { limit, offset } = getLimitAndOffset({
             limit: query?.limit,
             offset: query?.offset,
-        });        
+        });
     
         const where: FindOptionsWhere<Collection> = {
             userId,
@@ -88,7 +88,7 @@ export class CollectionsService {
             },
             take: limit,
             skip: offset,
-        });
+        });        
     
         return collections;
     }
@@ -126,26 +126,6 @@ export class CollectionsService {
         )
 
         return transformedWords;
-    }
-
-    private transformAllCollections(input: Collection[]): any {
-        // const result = input.map(collection)
-        // return input.map(collection => ({
-        //     collection,
-        //     words: collection.collectionVocabularies.map(cv => ({
-        //         audio: cv.vocabulary.audio,
-        //         definition: cv.vocabulary.definition,
-        //         exampleSentence: cv.vocabulary.exampleSentence,
-        //         meaning: cv.vocabulary.meaning,
-        //         partOfSpeech: cv.vocabulary.partOfSpeech,
-        //         pronunciation: cv.vocabulary.pronunciation,
-        //         word: cv.vocabulary.word,
-        //         id: cv.vocabulary.id,
-        //         createdAt: new Date(cv.vocabulary.createdAt).toISOString(),
-        //         updatedAt: new Date(cv.vocabulary.updatedAt).toISOString(),
-        //         deletedAt: cv.vocabulary.deletedAt ? new Date(cv.vocabulary.deletedAt).toISOString() : null
-        //     }))
-        // }));
     }
 
 }
