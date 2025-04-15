@@ -14,6 +14,9 @@ export class User extends CommonEntity {
     @Column({ type: 'enum', enum: Role, default: Role.User })
     role: Role;
 
+    @Column({ default: 0 })
+    tokenVersion: number;
+
     @OneToMany(() => Collection, (collection) => collection.user)
     collections: Collection[];
 }

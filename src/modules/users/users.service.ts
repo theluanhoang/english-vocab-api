@@ -59,7 +59,7 @@ export class UsersService {
             }
 
             const isMatch = await bcrypt.compare(dto.password, user.password);
-            
+
             if (!isMatch) {
                 throw new UnauthorizedException(EMessageError.INVALID_CREDENTIALS);
             }
@@ -73,5 +73,10 @@ export class UsersService {
     async create(createUserDTO: CreateUserDTO): Promise<User> {
         return this.userRepository.save(createUserDTO);
     }
+
+    async update(userId: string, data: Partial<User>) {
+        return this.userRepository.update(userId, data);
+    }
+
 
 }

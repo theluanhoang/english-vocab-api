@@ -19,7 +19,11 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      persistAuthorization: false
+    },
+  });
 
   await app.listen(3001, () => {
     console.log("SERVER IS RUNNING AT PORT 3001...");

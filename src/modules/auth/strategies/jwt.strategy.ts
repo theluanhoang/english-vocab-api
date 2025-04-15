@@ -1,14 +1,13 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../../users/users.service.js';
 
-interface IPayload {
+export interface IPayload {
     sub: string;
-    username: string;
-    iat: number;
-    exp: number;
+    email: string;
+    tokenVersion: number;
 }
 
 @Injectable()
@@ -29,6 +28,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
         id: payload.sub,
       },
     });
+
+    if (user?.tokenVersion !== payload.tokenVersion) {
+      throw new UnauthorizedException('Token is expired or invalid');
+    }
 
     return user;
   }

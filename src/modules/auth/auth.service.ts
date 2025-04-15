@@ -1,4 +1,9 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { User } from 'src/modules/users/entities/user.entity';
@@ -10,6 +15,9 @@ import { Cache } from 'cache-manager';
 import { getRefreshTokenKey } from 'src/utils';
 import { ConfigService } from '@nestjs/config';
 import { LoginDTO } from './dto/login.dto';
+import { LogoutDTO } from './dto/logout.dto';
+import { RefreshTokenDTO } from './dto/refresh-token.dto';
+import { IPayload } from './strategies';
 
 @Injectable()
 export class AuthService {
@@ -22,13 +30,10 @@ export class AuthService {
 
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.usersService.getOneOrThrow({
-        where: {
-            email
-        }
+      where: { email },
     });
 
-    const isMatch: boolean = bcrypt.compareSync(password, user.password);
-
+    const isMatch = bcrypt.compareSync(password, user.password);
     if (!isMatch) {
       throw new BadRequestException(EMessageError.PASSWORD_NOT_MATCH);
     }
@@ -39,8 +44,8 @@ export class AuthService {
   async login(loginDTO: LoginDTO) {
     const user = await this.usersService.comparePassword(loginDTO);
 
-    const accessToken = await this.signToken(user.id, user.email);
-    const refreshToken = await this.signRefreshToken(user.id, user.email);
+    const accessToken = await this.signToken(user.id, user.email, user.tokenVersion);
+    const refreshToken = await this.signRefreshToken(user.id, user.email, user.tokenVersion);
 
     await this.cacheManager.set(getRefreshTokenKey(user.id), refreshToken);
 
@@ -52,9 +57,7 @@ export class AuthService {
 
   async register(registerDTO: CreateUserDTO) {
     const existingUser = await this.usersService.getOne({
-        where: {
-            email: registerDTO.email
-        }
+      where: { email: registerDTO.email },
     });
 
     if (existingUser) {
@@ -62,45 +65,27 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(registerDTO.password, 10);
+    await this.usersService.create({
+      email: registerDTO.email,
+      password: hashedPassword,
+    });
 
-    const newUser = { email: registerDTO.email, password: hashedPassword };
-    
-    await this.usersService.create(newUser);
-    
     return {
-        message: 'Registration has succeeded'
+      message: 'Registration has succeeded',
     };
   }
 
-  async signTokenVerify(userId: string, email: string) {
-    const payload = {
-      sub: userId,
-      email,
-    };
+  async signToken(userId: string, email: string, tokenVersion: number) {
+    const payload: IPayload = { sub: userId, email, tokenVersion };
 
     return this.jwtService.signAsync(payload, {
-      expiresIn: '1day',
       secret: this.config.get('JWT_SECRET'),
+      expiresIn: this.config.get('EXP_ACCESS_TOKEN'),
     });
   }
 
-  async signToken(userId: string, email: string) {
-    const payload = {
-      sub: userId,
-      email,
-    };
-
-    return this.jwtService.signAsync(payload, {
-        secret: this.config.get('JWT_SECRET'),
-        expiresIn: this.config.get('EXP_ACCESS_TOKEN'),
-    });
-  }
-
-  async signRefreshToken(userId: string, email: string) {
-    const payload = {
-      sub: userId,
-      email,
-    };
+  async signRefreshToken(userId: string, email: string, tokenVersion: number) {
+    const payload: IPayload = { sub: userId, email, tokenVersion };
 
     return this.jwtService.signAsync(payload, {
       expiresIn: this.config.get('EXP_REFRESH_TOKEN'),
@@ -108,28 +93,65 @@ export class AuthService {
     });
   }
 
-//   async logout(dto: LogoutDto) {
-//     try {
-//       const payload = this.jwtService.verify(dto.refreshToken, {
-//         secret: this.cacheManager.get('REFRESH_SECRET'),
-//       });
+  async refreshToken(dto: RefreshTokenDTO) {
+    try {
+      const payload = await this.jwtService.verifyAsync<IPayload>(dto.refreshToken, {
+        secret: this.config.get('REFRESH_SECRET'),
+      });
 
-//       const user = await this.usersService.getOneOrThrow({
-//         where: {
-//           id: payload.sub,
-//         },
-//       });
+      const key = getRefreshTokenKey(payload.sub);
+      const cachedRefreshToken = await this.cacheManager.get<string>(key);
 
-//       const savedToken = await this.cacheManager.get(
-//         getRefreshTokenKey(user.id),
-//       );
+      if (cachedRefreshToken !== dto.refreshToken) {
+        throw new UnauthorizedException('Refresh token mismatch or expired');
+      }
 
-//       if (savedToken !== dto.refreshToken) {
-//         throw new UnauthorizedException();
-//       }
-//       await this.cacheManager.del(getRefreshTokenKey(user.id));
-//     } catch (error) {
-//       throw new UnauthorizedException('Invalid or expired refresh token');
-//     }
-//   }
+      const user = await this.usersService.getOneOrThrow({ where: { id: payload.sub } });
+
+      if (user.tokenVersion !== payload.tokenVersion) {
+        throw new UnauthorizedException('Token has been revoked.');
+      }
+
+      const accessToken = await this.signToken(user.id, user.email, user.tokenVersion);
+      const newRefreshToken = await this.signRefreshToken(user.id, user.email, user.tokenVersion);
+
+      await this.cacheManager.set(key, newRefreshToken);
+
+      return {
+        accessToken,
+        refreshToken: newRefreshToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
+
+  async logout(dto: LogoutDTO) {
+    try {
+      const payload = await this.jwtService.verifyAsync<IPayload>(dto.refreshToken, {
+        secret: this.config.get('REFRESH_SECRET'),
+      });
+
+      const key = getRefreshTokenKey(payload.sub);
+      const cached = await this.cacheManager.get<string>(key);
+
+      if (!cached || cached !== dto.refreshToken) {
+        throw new UnauthorizedException('Refresh token is invalid or already expired');
+      }
+
+      await this.cacheManager.del(key);
+
+      const user = await this.usersService.getOneOrThrow({ where: { id: payload.sub } });
+      
+      await this.usersService.update(payload.sub, {
+        tokenVersion: user.tokenVersion + 1,
+      });
+
+      return {
+        message: 'Logout successful. Token has been revoked.',
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid or expired refresh token');
+    }
+  }
 }
