@@ -19,6 +19,9 @@ export class Vocabulary extends CommonEntity {
     @Column({ name: 'example_sentence' })
     exampleSentence: string;
 
+    @Column({ name: 'translated_example', nullable: true })
+    translatedExample: string;
+
     @Column({ name: 'part_of_speech' })
     partOfSpeech: string;
 

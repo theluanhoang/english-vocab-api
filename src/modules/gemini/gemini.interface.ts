@@ -11,4 +11,5 @@ export interface WordCollection {
     partOfSpeech: string;
     audio: string;
     exampleSentence: string;
+    translatedExample: string;
   }

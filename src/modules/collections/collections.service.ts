@@ -114,6 +114,7 @@ export class CollectionsService {
                 audio: cv.vocabulary.audio,
                 definition: cv.vocabulary.definition,
                 exampleSentence: cv.vocabulary.exampleSentence,
+                translatedExample: cv.vocabulary.translatedExample,
                 meaning: cv.vocabulary.meaning,
                 partOfSpeech: cv.vocabulary.partOfSpeech,
                 pronunciation: cv.vocabulary.pronunciation,

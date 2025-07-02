@@ -36,6 +36,7 @@ interface OutputWord {
     audio: string;
     definition: string;
     exampleSentence: string;
+    translatedExample: string;
     meaning: string;
     partOfSpeech: string;
     pronunciation: string;
